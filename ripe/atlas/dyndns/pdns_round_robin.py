@@ -1,9 +1,7 @@
 import os
 import re
-import sys
 import logging
 import logging.handlers
-from ConfigParser import ConfigParser
 
 from backends.round_robin import RoundRobinFile
 from .pipe import PowerDNSPipe
@@ -13,6 +11,7 @@ logger = logging.getLogger('dyndns.pdns_roundrobin')
 c4_logger = logging.getLogger('count4')
 c6_logger = logging.getLogger('count6')
 cx_logger = logging.getLogger('countx')
+
 
 class PowerDNSRoundRobin(PowerDNSPipe, RoundRobinFile):
     description = "atlas-dyndns"
@@ -89,8 +88,8 @@ class PowerDNSRoundRobin(PowerDNSPipe, RoundRobinFile):
             logger.error('FAIL for {} {}'.format(qname, qtype))
             self.reply_fail()
 
-
     host_re = re.compile(r'[^a-z0-9-]', re.IGNORECASE)
+
     def get_roundrobin(self, hostname):
         if self.host_re.search(hostname):
             return None

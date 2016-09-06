@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
-import errno    
+import errno
 import logging
 import requests
 import argparse
@@ -16,7 +16,7 @@ from .version import __version__
 CONFIGS = [
     '/etc/atlas_dyndns.conf',
     '/usr/local/etc/atlas_dyndns.conf',
-     os.path.expanduser('~/.atlas_dyndns.conf')
+    os.path.expanduser('~/.atlas_dyndns.conf')
 ]
 
 
@@ -30,6 +30,7 @@ def get_resource(resource):
         )
     )
     return r.json()
+
 
 def get_routables(indata, af=4):
     _af = 'v' + str(af)
@@ -47,9 +48,8 @@ def get_routables(indata, af=4):
             p = IP(prefix)
             plen = p.prefixlen()
             if (
-                af == 4 and plen < 24
-                or 
-                af == 6 and  0 < plen <= 48
+                af == 4 and plen < 24 or
+                af == 6 and 0 < plen <= 48
             ):
                 addrs.add(p[1].strCompressed())
 
@@ -57,6 +57,7 @@ def get_routables(indata, af=4):
             continue
 
     return addrs
+
 
 def mkpath(path):
     try:
@@ -66,6 +67,7 @@ def mkpath(path):
             pass
         else:
             raise
+
 
 def create_routed_list_main():
     parser = argparse.ArgumentParser(
@@ -152,7 +154,6 @@ def create_routed_list_main():
                 print >>fh, "\t".join([rectype, addr])
 
 
-
 SAMPLE_CONFIG = """# This is a sample config file
 #
 
@@ -184,17 +185,17 @@ domain=dyndns.example.net
 
 # SOA contents for our zone
 soa:
-	%(domain)s root.%(domain)s
-	2010103101
-	1800
-	3600
-	604800
-	3600
+    %(domain)s root.%(domain)s
+    2010103101
+    1800
+    3600
+    604800
+    3600
 
 # NS servers for our zone
 ns_set:
-	ns1.example.net
-	ns1.example.net
+    ns1.example.net
+    ns1.example.net
 
 # end of a sample config file
 """
@@ -214,6 +215,7 @@ local-ipv6=::
 # end of a sample config file
 """
 
+
 def get_config(config_files):
     cp = ConfigParser()
     cp.readfp(StringIO(SAMPLE_CONFIG))
@@ -231,10 +233,12 @@ def get_config(config_files):
 
     return config
 
+
 def setup_logging(config):
-    numeric_level = getattr(logging, config['loglevel'].upper(), None)
+    loglevel = config['loglevel'].upper()
+    numeric_level = getattr(logging, loglevel, None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
+        raise ValueError('Invalid log level: {}'.format(loglevel))
 
     logger = logging.getLogger('dyndns')
     logger.setLevel(numeric_level)
@@ -257,6 +261,7 @@ def setup_logging(config):
     cx_handler = logging.handlers.WatchedFileHandler(config['countx_file'])
     cx_logger = logging.getLogger('countx')
     cx_logger.addHandler(cx_handler)
+
 
 def atlas_pdns_pipe_main():
     parser = argparse.ArgumentParser(
@@ -297,7 +302,7 @@ def atlas_pdns_pipe_main():
         print SAMPLE_CONFIG_PDNS.format(pipe_command=sys.argv[0])
         return
 
-    config_files = args.config and [args.config] or CONFIGS 
+    config_files = args.config and [args.config] or CONFIGS
     if not any([os.path.isfile(cfn) for cfn in config_files]):
         print >>sys.stderr, (
             "No configs found. Using internal defaults. "

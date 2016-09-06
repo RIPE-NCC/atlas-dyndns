@@ -37,7 +37,6 @@ setup(
     tests_require=[
         "nose",
         "coverage",
-        "mock",
         "setuptools"
     ],
     test_suite="nose.collector",

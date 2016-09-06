@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger('dyndns.roundrobin_file')
 
+
 class RoundRobinFile(object):
     def __init__(self):
         self._fh_cache = dict()
