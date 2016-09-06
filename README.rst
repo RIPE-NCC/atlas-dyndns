@@ -33,6 +33,7 @@ Install
 It will be installed either in your virtualenv or system-wide.
 
 Sample configuration can be generated:
+
 * The backend config:
   ``atlas-pdns-pipe --sample-config > /path/to/atlas-dyndns.conf``
 
@@ -48,7 +49,7 @@ You will also find the ``create-routed-list`` command useful. It can help you cr
 Stats
 ==========
 
-The sample munin scripts are located in the munin directory.
+The sample munin scripts are located in the ``munin`` directory.
 
 Acknowledgements
 ================
