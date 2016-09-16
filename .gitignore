@@ -1,1 +1,5 @@
 *pyc
+.coverage
+.eggs/
+.tox/
+ripe.atlas.dyndns.egg-info/
