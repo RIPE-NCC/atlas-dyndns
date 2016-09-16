@@ -21,6 +21,10 @@ class PowerDNSRoundRobin(PowerDNSPipe, RoundRobinFile):
         for name, value in config.items():
             setattr(self, name, value)
 
+        self.check_re = None
+        if "regexp_check" in config:
+            self.check_re = re.compile(config["regexp_check"])
+
         PowerDNSPipe.__init__(self, fdin, fdout)
         RoundRobinFile.__init__(self)
 
@@ -28,6 +32,10 @@ class PowerDNSRoundRobin(PowerDNSPipe, RoundRobinFile):
         logger.debug([q, qname, qclass, qtype, qid, remote_ip])
 
         if q != 'Q':
+            self.reply_end()
+            return
+
+        if self.check_re is not None and not self.check_re.match(qname):
             self.reply_end()
             return
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import re
 import sys
 import errno
 import logging
@@ -183,6 +184,9 @@ ns_ttl=21600
 # our zone
 domain=dyndns.example.net
 
+# check zone against regexp (comment it out if not needed)
+# regexp_check=^(:?.+?\.)?%(domain)s$
+
 # SOA contents for our zone
 soa:
     %(domain)s root.%(domain)s
@@ -317,5 +321,13 @@ def atlas_pdns_pipe_main():
         return
 
     setup_logging(config)
+
+    if "regexp_check" in config:
+        if not re.compile(config["regexp_check"]).match(config["domain"]):
+            logger = logging.getLogger('dyndns')
+            logger.error(
+                "'regexp_check' doesn't match 'domain'. Check config"
+            )
+            return
 
     PowerDNSRoundRobin(sys.stdin, sys.stdout, **config).dispatch()
