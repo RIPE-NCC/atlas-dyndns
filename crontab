@@ -1,1 +1,0 @@
-10 11 * * *   ~/atlas-dyndns/topology-update.sh >> ~/log/topology-update.log

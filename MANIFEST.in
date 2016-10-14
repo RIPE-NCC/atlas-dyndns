@@ -1,0 +1,6 @@
+include LICENSE
+include README.rst
+include MANIFEST.in
+include CHANGES.rst
+recursive-include ripe *.py
+recursive-include tests *.py
