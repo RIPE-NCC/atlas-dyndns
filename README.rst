@@ -1,6 +1,11 @@
 RIPE Atlas dyndns server
 ========================
 
+|Build Status|
+
+.. |Build Status| image:: https://travis-ci.org/RIPE-NCC/atlas-dyndns.png?branch=master
+   :target: https://travis-ci.org/RIPE-NCC/atlas-dyndns
+
 This piece of code runs a variation of “dynamic dns” functionality:
 given a set of host names in a zone, it answers with “the next answer”
 from a predefined list, in round-robin fashion.
