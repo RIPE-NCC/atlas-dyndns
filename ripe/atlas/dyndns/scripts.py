@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+
+from __future__ import print_function
 import os
 import re
 import sys
@@ -6,10 +8,21 @@ import errno
 import logging
 import requests
 import argparse
+import json
+import datetime
 from IPy import IP
 from random import shuffle
-from StringIO import StringIO
-from ConfigParser import ConfigParser
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
+try:
+    from ConfigParser import ConfigParser
+except:
+    from configparser import ConfigParser
+
 from .pdns_round_robin import PowerDNSRoundRobin
 from .version import __version__
 
@@ -36,25 +49,24 @@ def get_resource(resource):
 def get_routables(indata, af=4):
     _af = 'v' + str(af)
 
-    prefixes = set()
+    addrs = set()
+
     for t in ("originating", "transitting"):
         try:
-            prefixes.update(indata["data"]["prefixes"][_af][t])
+            for prefix in indata["data"]["prefixes"][_af][t]:
+                try:
+                    p = IP(prefix)
+                    plen = p.prefixlen()
+                    if af == 6 and 12 <= plen <= 48:
+                        addrs.add(p[1].strCompressed())
+
+                    if af == 4 and 8 <= plen <= 24:
+                        addrs.add(p[1].strCompressed())
+
+                except (ValueError, IndexError):
+                    continue
+
         except KeyError:
-            continue
-
-    addrs = set()
-    for prefix in prefixes:
-        try:
-            p = IP(prefix)
-            plen = p.prefixlen()
-            if (
-                af == 4 and plen < 24 or
-                af == 6 and 0 < plen <= 48
-            ):
-                addrs.add(p[1].strCompressed())
-
-        except (ValueError, IndexError):
             continue
 
     return addrs
@@ -69,10 +81,19 @@ def mkpath(path):
         else:
             raise
 
+def save_resource(resources, dest_file):
+    with open(dest_file, "w") as to:
+        json.dump(resources, to)
+
+
+def load_resource(load_file):
+    with open(load_file, "r") as f:
+        return json.load(f)
+
 
 def create_routed_list_main():
     parser = argparse.ArgumentParser(
-        description='Creates a routable list using RIPE Stat'
+        description='Creates a routable list using RIPEstat'
     )
     parser.add_argument(
         "-d", "--data-path",
@@ -89,6 +110,16 @@ def create_routed_list_main():
         "-n", "--host-name",
         action="store", dest='hostname',
         help="host name to associate with"
+    )
+    parser.add_argument(
+        "-s", "--save",
+        action="store", dest='save',
+        help="Save resources retrieved to this file"
+    )
+    parser.add_argument(
+        "-l", "--load",
+        action="store", dest='load',
+        help="Load resources from this file"
     )
     parser.add_argument(
         "-4", "--only-v4",
@@ -119,40 +150,75 @@ def create_routed_list_main():
         )
     )
     parser.add_argument(
-        '-v', '--version',
+        '-V', '--version',
         action='version',
         version='%(prog)s ' + __version__
     )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Produce some verbose output'
+    )
     args = parser.parse_args()
-
-    if None in (args.hostname, args.resource):
-        print >>sys.stderr, "Host name and resource must be specified"
-        return
 
     afs = args.af or [4, 6]
 
-    data = get_resource(args.resource)
+    if None in (args.hostname, args.resource) and args.load is None:
+        print(
+            "Either file to load or host name and resource must be specified",
+            file=sys.stderr
+        )
+        return
+
+    if args.verbose:
+        print("{}\tStarting".format(datetime.datetime.now()))
+
+    if args.load:
+        if args.verbose:
+            print("{}\tLoading from file {}".format(datetime.datetime.now(), args.load))
+        data = load_resource(args.load)
+    else:
+        if args.verbose:
+            print("{}\tFetching data from RIPEstat using resource {}".format(datetime.datetime.now(), args.resource))
+        data = get_resource(args.resource)
+
+    if args.save:
+        if args.verbose:
+            print("Saving data to file {}".format(args.save))
+        save_resource(data, args.save)
+
     for af in afs:
+        if args.verbose:
+            print("{}\tProcessing IPv{}".format(datetime.datetime.now(), af))
+
         rectype, minlen = ("AAAA", args.minv6) if af == 6 else ("A", args.minv4)
 
         addrs = list(get_routables(data, af))
         addrslen = len(addrs)
 
         if addrslen < minlen:
-            print >>sys.stderr, (
-                "Number of {} records ({}) "
-                "is lower than threshold {}"
-            ).format(rectype, addrslen, minlen)
+            print("Number of {} records ({}) is lower than threshold {}"
+                .format(rectype, addrslen, minlen),
+                file=sys.stderr
+            )
             continue
 
         hostpath = os.path.join(args.data_path, args.hostname + str(af))
         mkpath(hostpath)
 
         filename = os.path.join(hostpath, "v{}.txt".format(af))
+        if args.verbose:
+            print("{}\tWriting IPv{} output to {}".format(datetime.datetime.now(), af, filename))
         with open(filename, "wt") as fh:
             shuffle(addrs)
             for addr in addrs:
-                print >>fh, "\t".join([rectype, addr])
+                print("\t".join([rectype, addr]), file=fh)
+
+        if args.verbose:
+            print("{}\tThere are {} entries for IPv{}".format(datetime.datetime.now(), addrslen, af))
+
+    if args.verbose:
+        print("{}\tDone".format(datetime.datetime.now()))
 
 
 SAMPLE_CONFIG = """# This is a sample config file
@@ -299,25 +365,26 @@ def atlas_pdns_pipe_main():
 
     args = parser.parse_args()
     if args.genconfig:
-        print SAMPLE_CONFIG
+        print(SAMPLE_CONFIG)
         return
 
     if args.genconfig_pdns:
-        print SAMPLE_CONFIG_PDNS.format(pipe_command=sys.argv[0])
+        print(SAMPLE_CONFIG_PDNS.format(pipe_command=sys.argv[0]))
         return
 
     config_files = args.config and [args.config] or CONFIGS
     if not any([os.path.isfile(cfn) for cfn in config_files]):
-        print >>sys.stderr, (
+        print(
             "No configs found. Using internal defaults. "
-            "Use --sample-config to generate a sample config"
+            "Use --sample-config to generate a sample config",
+            file=sys.stderr
         )
 
     config = get_config(config_files)
 
     if args.dumpconfig:
         for name, value in config.items():
-            print '{} = "{}"'.format(name, value)
+            print('{} = "{}"'.format(name, value))
         return
 
     setup_logging(config)
