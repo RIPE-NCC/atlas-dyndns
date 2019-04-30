@@ -81,6 +81,7 @@ def mkpath(path):
         else:
             raise
 
+
 def save_resource(resources, dest_file):
     with open(dest_file, "w") as to:
         json.dump(resources, to)
@@ -175,11 +176,17 @@ def create_routed_list_main():
 
     if args.load:
         if args.verbose:
-            print("{}\tLoading from file {}".format(datetime.datetime.now(), args.load))
+            print(
+                "{}\tLoading from file {}"
+                .format(datetime.datetime.now(), args.load)
+            )
         data = load_resource(args.load)
     else:
         if args.verbose:
-            print("{}\tFetching data from RIPEstat using resource {}".format(datetime.datetime.now(), args.resource))
+            print(
+                "{}\tFetching data from RIPEstat using resource {}"
+                .format(datetime.datetime.now(), args.resource)
+            )
         data = get_resource(args.resource)
 
     if args.save:
@@ -197,7 +204,8 @@ def create_routed_list_main():
         addrslen = len(addrs)
 
         if addrslen < minlen:
-            print("Number of {} records ({}) is lower than threshold {}"
+            print(
+                "Number of {} records ({}) is lower than threshold {}"
                 .format(rectype, addrslen, minlen),
                 file=sys.stderr
             )
@@ -208,14 +216,20 @@ def create_routed_list_main():
 
         filename = os.path.join(hostpath, "v{}.txt".format(af))
         if args.verbose:
-            print("{}\tWriting IPv{} output to {}".format(datetime.datetime.now(), af, filename))
+            print(
+                "{}\tWriting IPv{} output to {}"
+                .format(datetime.datetime.now(), af, filename)
+            )
         with open(filename, "wt") as fh:
             shuffle(addrs)
             for addr in addrs:
                 print("\t".join([rectype, addr]), file=fh)
 
         if args.verbose:
-            print("{}\tThere are {} entries for IPv{}".format(datetime.datetime.now(), addrslen, af))
+            print(
+                "{}\tThere are {} entries for IPv{}"
+                .format(datetime.datetime.now(), addrslen, af)
+            )
 
     if args.verbose:
         print("{}\tDone".format(datetime.datetime.now()))
