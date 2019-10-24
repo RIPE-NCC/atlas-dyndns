@@ -31,8 +31,8 @@ setup(
     maintainer="The RIPE Atlas team",
     maintainer_email="atlas@ripe.net",
     install_requires=[
-        "requests>=2.7.0",
-        "IPy>=0.8"
+        "requests>=2.22.0",
+        "IPy>=1.0"
     ],
     tests_require=[
         "nose",
@@ -53,6 +53,7 @@ setup(
         "Operating System :: Unix",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Topic :: Internet :: DNS",
     ],
 )
