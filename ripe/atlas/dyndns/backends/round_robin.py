@@ -16,12 +16,12 @@ class RoundRobinFile(object):
 
         # read the line in round-robin fashion
         try:
-            line = fh.next()
+            line = next(fh)
         except StopIteration:
             logger.debug('Reached end of round for {}'.format(fh.name))
             fh.seek(0)
             try:
-                line = fh.next()
+                line = next(fh)
             except StopIteration:
                 return None
 
