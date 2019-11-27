@@ -3,7 +3,7 @@ import re
 import logging
 import logging.handlers
 
-from backends.round_robin import RoundRobinFile
+from .backends.round_robin import RoundRobinFile
 from .pipe import PowerDNSPipe
 from .version import __version__
 
