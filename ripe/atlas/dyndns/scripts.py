@@ -10,6 +10,10 @@ import requests
 import argparse
 import json
 import datetime
+import shutil
+import stat
+import tempfile
+
 from IPy import IP
 from random import shuffle
 
@@ -214,16 +218,25 @@ def create_routed_list_main():
         hostpath = os.path.join(args.data_path, args.hostname + str(af))
         mkpath(hostpath)
 
-        filename = os.path.join(hostpath, "v{}.txt".format(af))
+        temp_fh, temp_fn = tempfile.mkstemp()
         if args.verbose:
             print(
                 "{}\tWriting IPv{} output to {}"
-                .format(datetime.datetime.now(), af, filename)
+                .format(datetime.datetime.now(), af, temp_fn)
             )
-        with open(filename, "wt") as fh:
+        with os.fdopen(temp_fh, "wt") as fh:
             shuffle(addrs)
             for addr in addrs:
                 print("\t".join([rectype, addr]), file=fh)
+        os.chmod(temp_fn, stat.S_IREAD|stat.S_IWRITE|stat.S_IRGRP|stat.S_IROTH)
+
+        filename = os.path.join(hostpath, "v{}.txt".format(af))
+        if args.verbose:
+            print(
+                "{}\tMoving IPv{} output to {}"
+                .format(datetime.datetime.now(), af, filename)
+            )
+        shutil.move(temp_fn, filename)
 
         if args.verbose:
             print(
