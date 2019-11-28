@@ -18,7 +18,7 @@ class RoundRobinFile(object):
         try:
             line = next(fh)
         except StopIteration:
-            logger.debug('Reached end of round for {}'.format(fh.name))
+            logger.info('Reached end of round for {}'.format(fh.name))
             fh.seek(0)
             try:
                 line = next(fh)
