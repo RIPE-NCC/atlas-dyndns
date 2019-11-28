@@ -24,7 +24,7 @@ except ImportError:
 
 try:
     from ConfigParser import ConfigParser
-except:
+except ImportError:
     from configparser import ConfigParser
 
 from .pdns_round_robin import PowerDNSRoundRobin
@@ -228,7 +228,10 @@ def create_routed_list_main():
             shuffle(addrs)
             for addr in addrs:
                 print("\t".join([rectype, addr]), file=fh)
-        os.chmod(temp_fn, stat.S_IREAD|stat.S_IWRITE|stat.S_IRGRP|stat.S_IROTH)
+        os.chmod(
+            temp_fn,
+            stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IROTH
+        )
 
         filename = os.path.join(hostpath, "v{}.txt".format(af))
         if args.verbose:
