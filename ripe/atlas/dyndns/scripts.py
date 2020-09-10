@@ -55,7 +55,7 @@ def get_routables(indata, af=4):
 
     addrs = set()
 
-    for t in ("originating", "transitting"):
+    for t in ("originating", "transiting"):
         try:
             for prefix in indata["data"]["prefixes"][_af][t]:
                 try:
