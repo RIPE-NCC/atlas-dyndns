@@ -1,3 +1,9 @@
+2.2.0 (2020-09-10)
+------------------
+
+- prefix list updater is changed to RIPEstat's API changed to fix a typo
+  (transitted -> transited)
+
 2.1.0 (2019-11-28)
 ------------------
 
